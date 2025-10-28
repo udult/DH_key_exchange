@@ -14,7 +14,8 @@
 
 *Реализация протокола Диффи-Хеллмана представлена классом dh библиотеки crypto++*
 
-сборка: 
+сборка:
+
 ```sudo apt install libcrypto++-dev```
 
 ```g++ ./src/server.cpp -o server -lcryptopp```
