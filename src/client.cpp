@@ -36,7 +36,6 @@ int main()
 	if (connect(sockfd, (struct sockaddr*) &addr, sizeof(addr)) == -1)
 	{
 		perror("connect");
-		shutdown(sockfd, SHUT_RDWR);
 		close(sockfd);
 		return 1;
 	}
@@ -49,7 +48,6 @@ int main()
 	if (recv(sockfd, buffer, sizeof(buffer), 0) <= 0)
 	{
 		std::cout << "Failed to receive DH common" << std::endl;
-		shutdown(sockfd, SHUT_RDWR);
 		close(sockfd);
 		return 1;
 	}
@@ -116,13 +114,13 @@ int main()
 
 		// send dh public key
 		if (send(sockfd, pub.data(), pub.size(), 0) <= 0)
-			std::runtime_error("Failed to send DH public key");
+			throw std::runtime_error("Failed to send DH public key");
 
 		// receive dh public key
 		SecByteBlock pubRecv(dh.PublicKeyLength());
 
 		if (recv(sockfd, pubRecv.data(), pubRecv.size(), 0) <= 0)
-			std::runtime_error("Failed to receive DH public key");
+			throw std::runtime_error("Failed to receive DH public key");
 
 		std::string pubRecv_s;
 
@@ -154,12 +152,10 @@ int main()
 	catch (const Exception &exc)
 	{
 		std::cout << exc.what() << std::endl;
-		shutdown(sockfd, SHUT_RDWR);
 		close(sockfd);
 		return 1;
 	}
 
-	shutdown(sockfd, SHUT_RDWR);
 	close(sockfd);
 
 	return 0;

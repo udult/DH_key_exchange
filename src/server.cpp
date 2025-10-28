@@ -37,7 +37,6 @@ int main()
 	if (bind(server, (struct sockaddr*) &addr, sizeof(addr)) == -1)
 	{
 		perror("bind");
-		shutdown(server, SHUT_RDWR);
 		close(server);
 		return 1;
 	}
@@ -47,7 +46,6 @@ int main()
 	if (listen(server, 2) == -1)
 	{
 		perror("listen");
-		shutdown(server, SHUT_RDWR);
 		close(server);
 		return 1;
 	}
@@ -66,7 +64,6 @@ int main()
 	if (client1 == -1)
 	{
 		perror("accept");
-		shutdown(server, SHUT_RDWR);
 		close(server);
 		return 1;
 	}
@@ -77,7 +74,6 @@ int main()
 	if (client2 == -1)
 	{
 		perror("accept");
-		shutdown(server, SHUT_RDWR);
 		close(server);
 		return 1;
 	}
@@ -105,20 +101,20 @@ int main()
 		std::string buffer = ss.str();
 
 		if (send(client1, buffer.c_str(), buffer.size(), 0) <= 0)
-			std::runtime_error("Failed to send DH common to client 1");
+			throw std::runtime_error("Failed to send DH common to client 1");
 
 		if (send(client2, buffer.c_str(), buffer.size(), 0) <= 0)
-			std::runtime_error("Failed to send DH common to client 2");
+			throw std::runtime_error("Failed to send DH common to client 2");
 
 		// receive public dh keys from clients
 		SecByteBlock publicKey1(dh.PublicKeyLength());
 		SecByteBlock publicKey2(dh.PublicKeyLength());
 
 		if (recv(client1, publicKey1.data(), publicKey1.size(), 0) <= 0)
-			std::runtime_error("Failed to receive DH public key from client 1");
+			throw std::runtime_error("Failed to receive DH public key from client 1");
 
 		if (recv(client2, publicKey2.data(), publicKey2.size(), 0) <= 0)
-			std::runtime_error("Failed to receive DH public key from client 2");
+			throw std::runtime_error("Failed to receive DH public key from client 2");
 
 		std::string pub1_s;
 		std::string pub2_s;
@@ -140,10 +136,10 @@ int main()
 
 		// resend public dh keys between clients
 		if (send(client1, publicKey2.data(), publicKey2.size(), 0) <= 0)
-			std::runtime_error("Failed to resend DH public key to client 1");
+			throw std::runtime_error("Failed to resend DH public key to client 1");
 
 		if (send(client2, publicKey1.data(), publicKey1.size(), 0) <= 0)	
-			std::runtime_error("Failed to resend DH public key to client 2");
+			throw std::runtime_error("Failed to resend DH public key to client 2");
 
 		std::cout << "\nDH public keys has been exchanged" << std::endl;
 	}
@@ -151,12 +147,10 @@ int main()
 	catch (const Exception &exc)
 	{
 		std::cout << exc.what() << std::endl;
-		shutdown(server, SHUT_RDWR);
 		close(server);
 		return 1;
 	}
 
-	shutdown(server, SHUT_RDWR);
 	close(server);
 
 	return 0;
